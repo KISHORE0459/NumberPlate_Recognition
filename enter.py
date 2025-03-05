@@ -4,6 +4,7 @@ import cv2
 import matplotlib.pyplot as plt
 from pymongo import MongoClient
 from datetime import datetime
+from shortestpath import find_shortest_path;
 CONNECTION_STRING = "mongodb+srv://kishorebabu200409:kishore26@cluster0.hf4t5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
 # Connect to MongoDB Atlas
@@ -26,6 +27,8 @@ def UserEntry(number_plate):
         if(user_entry.find_one({"number_plate":np})):
             print("User Alreafy Entered !")
         else:
+            path, nearest_free_space = find_shortest_path()
+            user["allocated Space"] = nearest_free_space
             user_entry.insert_one(user)
             result = users_collection.find_one_and_update(
                     {"number_plate": number_plate},
@@ -33,6 +36,7 @@ def UserEntry(number_plate):
                     return_document=True
                     )
             print(result)
+            
 
 
 #recogonize the number plate of the user when they leave
