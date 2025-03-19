@@ -37,5 +37,5 @@ def display_user_details(number_plate):
 # Example usage
 if __name__ == "__main__":
     # Add a new user
-    add_user("Ravi", "21BH0001AA", "6238418876", 10000)
+    add_user("Lucifer", "JA62UAR", "9856743210", 1000)
 

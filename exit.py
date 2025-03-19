@@ -16,8 +16,8 @@ user_exit = db['exit']
 
 # Calculate the time duration and parking cost, and update the wallet balance
 def calculate_parking_cost(entry_time, exit_time):
-    entry_time = datetime.strptime(entry_time, "%H:%M:%S")
-    exit_time = datetime.strptime(exit_time, "%H:%M:%S")
+    # entry_time = datetime.strptime(entry_time, "%H:%M:%S")
+    # exit_time = datetime.strptime(exit_time, "%H:%M:%S")
     duration = (exit_time - entry_time).total_seconds() // 60  # Duration in minutes
     cost = duration * 1  # Rs.1 per minute
     return duration, cost
@@ -26,7 +26,7 @@ def calculate_parking_cost(entry_time, exit_time):
 def UserExit(number_plate):
     user = users_collection.find_one({"number_plate": number_plate})
     if user:
-        exit_time = datetime.now().strftime("%H:%M:%S")
+        exit_time = datetime.now()
         print("Exit Time:", exit_time)
         
         # Retrieve entry time from the user entry collection

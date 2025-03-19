@@ -17,13 +17,15 @@ user_entry = db['entry']
 # adding user to the enter collection that store the user details when they enter
 
 def UserEntry(number_plate):
+    print(number_plate)
     user = users_collection.find_one({"number_plate" : number_plate})
     if user:
-        time = datetime.now().strftime("%H:%M:%S")
+        time = datetime.now()
         print(time)
         user["EnterTime"] = time
         print(user)
         np = user["number_plate"]
+        print(np)
         if(user_entry.find_one({"number_plate":np})):
             print("User Alreafy Entered !")
         else:
