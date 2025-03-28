@@ -1,2 +1,10 @@
 ultralytics>=1.0.0
 numpy>=1.21.0
+easyocr
+opencv-python
+matplotlib
+pymongo
+flask
+flask_cors
+razorpay
+

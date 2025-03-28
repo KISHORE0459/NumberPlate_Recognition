@@ -19,6 +19,7 @@ def is_valid_plate(plate_text):
     """Check if the detected number plate matches the required format."""
     return bool(plate_pattern.match(plate_text))
 
+
 # Open a connection to the camera
 cap = cv2.VideoCapture(0)
 

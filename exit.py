@@ -7,10 +7,15 @@ from datetime import datetime
 
 CONNECTION_STRING = "mongodb+srv://kishorebabu200409:kishore26@cluster0.hf4t5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
+# rzp_test_GL7rIL2x0NYu1z
+
+# 3fHjboaIwgTaGP8qGQAMMFfU
+
+
 # Connect to MongoDB Atlas
 client = MongoClient(CONNECTION_STRING)
-db = client['number_plate_recognition']  # Updated database name
-users_collection = db['user']  # Updated collection name
+db = client['number_plate_recognition'] 
+users_collection = db['user']  
 user_entry = db['entry']
 user_exit = db['exit']
 
@@ -24,41 +29,46 @@ def calculate_parking_cost(entry_time, exit_time):
 
 # Adding user to the exit collection that stores the user details when they exit and removing them from the entry collection
 def UserExit(number_plate):
-    user = users_collection.find_one({"number_plate": number_plate})
+    user = user_entry.find_one({"number_plate": number_plate})
     if user:
         exit_time = datetime.now()
         print("Exit Time:", exit_time)
         
         # Retrieve entry time from the user entry collection
-        entry_record = user_entry.find_one({"number_plate": number_plate})
-        if entry_record:
-            entry_time = entry_record.get("EnterTime")
+        if user:
+            entry_time = user.get("EnterTime")
             duration, cost = calculate_parking_cost(entry_time, exit_time)
             print(f"Parking Duration: {duration} minutes")
             print(f"Parking Cost: Rs.{cost}")
 
             # Deduct the cost from the user's wallet balance
-            wallet_balance = user['wallet_balance'] - cost
-            user['wallet_balance'] = wallet_balance
-            user['ExitTime'] = exit_time
 
             # Update the user's history with the enter and exit time pair
-            history_entry = {"enter": entry_time, "exit": exit_time}
-            result = users_collection.find_one_and_update(
-                {"number_plate": number_plate},
-                {
-                    "$push": {"history": history_entry},
-                    "$set": {"wallet_balance": wallet_balance}
-                },
-                return_document=True
-            )
-            
+            user_db = users_collection.find_one({"number_plate": number_plate})
+            if user_db:
+                wallent_amt = user['wallet_balance']
+                if(wallent_amt <= 0 or wallent_amt < cost):
+                    print("Insufficient Balance..")
+                    return
+                wallet_balance = wallent_amt - cost
+                user['wallet_balance'] = wallet_balance
+                user['ExitTime'] = exit_time
+                history_entry = {"enter": entry_time, "exit": exit_time}
+                result = users_collection.find_one_and_update(
+                    {"number_plate": number_plate},
+                    {
+                        "$push": {"history": history_entry},
+                        "$set": {"wallet_balance": wallet_balance}
+                    },
+                    return_document=True
+                )
+                user.pop('_id')
+                print("Updated User Details:", result)
+            else:
+                user["ExitTime"] = exit_time
             # Remove the '_id' field from the user document before inserting it into the exit collection
-            user.pop('_id')
             user_exit.insert_one(user)
             user_entry.delete_one({"number_plate": number_plate})
-
-            print("Updated User Details:", result)
         else:
             print("No entry record found for this user.")
     else:
