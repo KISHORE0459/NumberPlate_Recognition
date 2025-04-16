@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 from pymongo import MongoClient
 from datetime import datetime
 
+from update_freespace import update_space
+
 CONNECTION_STRING = "mongodb+srv://kishorebabu200409:kishore26@cluster0.hf4t5.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
 # rzp_test_GL7rIL2x0NYu1z
@@ -18,6 +20,7 @@ db = client['number_plate_recognition']
 users_collection = db['user']  
 user_entry = db['entry']
 user_exit = db['exit']
+path_collection = db['parkingspace']
 
 # Calculate the time duration and parking cost, and update the wallet balance
 def calculate_parking_cost(entry_time, exit_time):
@@ -27,13 +30,13 @@ def calculate_parking_cost(entry_time, exit_time):
     cost = duration * 1  # Rs.1 per minute
     return duration, cost
 
+
 # Adding user to the exit collection that stores the user details when they exit and removing them from the entry collection
 def UserExit(number_plate):
     user = user_entry.find_one({"number_plate": number_plate})
     if user:
         exit_time = datetime.now()
         print("Exit Time:", exit_time)
-        
         # Retrieve entry time from the user entry collection
         if user:
             entry_time = user.get("EnterTime")
@@ -46,7 +49,7 @@ def UserExit(number_plate):
             # Update the user's history with the enter and exit time pair
             user_db = users_collection.find_one({"number_plate": number_plate})
             if user_db:
-                wallent_amt = user['wallet_balance']
+                wallent_amt = user_db['wallet_balance']
                 if(wallent_amt <= 0 or wallent_amt < cost):
                     print("Insufficient Balance..")
                     return
@@ -62,13 +65,17 @@ def UserExit(number_plate):
                     },
                     return_document=True
                 )
+                user.pop("EnterTime", None)
+                user.pop("wallet_balance", None)
                 user.pop('_id')
                 print("Updated User Details:", result)
             else:
                 user["ExitTime"] = exit_time
             # Remove the '_id' field from the user document before inserting it into the exit collection
             user_exit.insert_one(user)
+            update_space(user["allocated Space"][0],user["allocated Space"][1] )
             user_entry.delete_one({"number_plate": number_plate})
+            return True
         else:
             print("No entry record found for this user.")
     else:
@@ -78,7 +85,7 @@ def UserExit(number_plate):
 model = YOLO('d:/yolov8-license-plate-detection-pytorch-overall-best-and-last-epoch-models-v1/best.pt')
 
 # Initialize EasyOCR reader
-reader = easyocr.Reader(['en'])
+reader = easyocr.Reader(['en']) 
 
 # Open a connection to the camera
 cap = cv2.VideoCapture(0)  # Use 0 for the default camera or replace with the camera index
@@ -117,7 +124,10 @@ while True:
             cv2.putText(frame, plate_text, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 0, 0), 2)
             print(f"Detected Number Plate Text: {plate_text.replace(' ', '')}")
             
-            UserExit(plate_text.replace(' ', ''))
+            is_exited = UserExit(plate_text.replace(' ', ''))
+            if(is_exited):
+                cap.release()
+                cv2.destroyAllWindows()
 
     # Convert the frame to RGB (OpenCV uses BGR by default)
     frame_rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

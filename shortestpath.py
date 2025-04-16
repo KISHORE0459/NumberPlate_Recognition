@@ -69,7 +69,7 @@ def find_shortest_path():
     return [], None  # No free space found
 
 # Run function
-path, nearest_free_space = find_shortest_path()
+# path, nearest_free_space = find_shortest_path()
 
-print("Shortest Path:", path)
-print("Nearest Free Space Position:", nearest_free_space)
+# print("Shortest Path:", path)
+# print("Nearest Free Space Position:", nearest_free_space)
